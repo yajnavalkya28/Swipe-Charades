@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Swipe Charades - Telugu Movies</title>
+    <style>
+        /* General Styling */
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color-1: #ff6b6b;
+            --accent-color-2: #00b894;
+            --text-color-light: #ffffff;
+            --text-color-dark: #2d3436;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            min-height: 100vh;
+            overflow: hidden; /* Prevent scrolling the whole page */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            height: 100%;
+            max-height: 900px;
+            margin: 0 auto;
+            position: relative;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Screen Transitions */
+        .screen {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            padding: 40px 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.95);
+        }
+
+        /* Welcome Screen */
+        #welcomeScreen {
+            justify-content: space-between;
+        }
+
+        .game-title {
+            font-size: 3rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d, #6bcf7f, #4d9de0);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient 3s ease infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .game-description {
+            color: var(--text-color-light);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+        }
+        .game-description h3 { margin-bottom: 15px; }
+
+        .get-started-btn {
+            background: linear-gradient(45deg, var(--accent-color-1), #ee5a24);
+            color: var(--text-color-light);
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.3rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(238, 90, 36, 0.3);
+            margin-bottom: 20px;
+        }
+        .get-started-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(238, 90, 36, 0.4);
+        }
+
+        .made-by {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1rem;
+            padding-bottom: 10px;
+        }
+
+        /* Time Selection Screen */
+        #timeSelection {
+            justify-content: center;
+        }
+
+        .time-title {
+            color: var(--text-color-light);
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .time-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .time-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--text-color-light);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 20px;
+            font-size: 1.2rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        .time-btn:hover, .time-btn.selected {
+            background: rgba(255, 255, 255, 0.4);
+            border-color: var(--accent-color-1);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        .infinite-btn { grid-column: span 2; }
+
+        .start-game-btn {
+            background: linear-gradient(45deg, var(--accent-color-2), #00cec9);
+            color: var(--text-color-light);
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.3rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 184, 148, 0.3);
+            margin-top: 30px;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .start-game-btn.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .start-game-btn.active:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 184, 148, 0.4);
+        }
+
+        /* Game Screen */
+        #gameScreen {
+            padding: 20px;
+            justify-content: flex-start;
+        }
+        
+        .game-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            color: var(--text-color-light);
+        }
+
+        .timer, .score {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            min-width: 110px;
+            text-align: center;
+        }
+
+        .card-container {
+            flex-grow: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .movie-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 25px;
+            padding: 40px 30px;
+            text-align: center;
+            width: calc(100% - 40px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            cursor: grab;
+            user-select: none;
+            position: absolute;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            transform-origin: center;
+        }
+        .movie-card:active { cursor: grabbing; }
+
+        .movie-title {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: var(--text-color-dark);
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+
+        .movie-year {
+            font-size: 1rem;
+            color: #636e72;
+        }
+        
+        .loading {
+            color: var(--text-color-dark);
+            font-size: 1.5rem;
+        }
+        
+        .swipe-instructions {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10px;
+            color: var(--text-color-light);
+            font-size: 0.9rem;
+            margin-top: 20px;
+        }
+        .swipe-left, .swipe-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px 15px;
+            border-radius: 20px;
+        }
+
+        .stop-btn {
+            background: linear-gradient(45deg, #fd79a8, #e84393);
+            color: var(--text-color-light);
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: auto; /* Push to bottom */
+            margin-bottom: 10px;
+        }
+        .stop-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(232, 67, 147, 0.3);
+        }
+
+        /* Score Screen */
+        #scoreScreen {
+            justify-content: center;
+        }
+
+        .final-score-title {
+            color: rgba(255,255,255,0.8);
+            font-size: 1.5rem;
+        }
+        .final-score {
+            color: var(--text-color-light);
+            font-size: 6rem;
+            font-weight: bold;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+            line-height: 1;
+        }
+
+        .score-details {
+            color: var(--text-color-light);
+            font-size: 1.2rem;
+            margin: 20px 0 40px 0;
+            background: rgba(0, 0, 0, 0.15);
+            padding: 30px;
+            border-radius: 20px;
+            width: 100%;
+        }
+
+        .play-again-btn {
+            background: linear-gradient(45deg, #74b9ff, #0984e3);
+            color: var(--text-color-light);
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.3rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(9, 132, 227, 0.3);
+        }
+        .play-again-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(9, 132, 227, 0.4);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 480px) {
+            .game-title { font-size: 2.5rem; }
+            .movie-title { font-size: 1.8rem; }
+            .screen { padding: 20px 15px; }
+            .game-description { padding: 20px; font-size: 1rem; }
+            .get-started-btn, .start-game-btn, .play-again-btn { padding: 15px 35px; font-size: 1.2rem; }
+            .time-options { gap: 15px; }
+            .time-btn { padding: 15px; font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Welcome Screen -->
+        <div class="screen" id="welcomeScreen">
+            <div style="text-align: center;">
+                <h1 class="game-title">🎬 Swipe Charades</h1>
+                <div class="game-description">
+                    <h3>How to Play</h3>
+                    <p>🎭 A Telugu movie title will appear.</p>
+                    <p>👉 Swipe <strong>RIGHT</strong> if you act it out correctly!</p>
+                    <p>👈 Swipe <strong>LEFT</strong> if you pass or want to skip.</p>
+                    <p>🏆 Score as many points as you can!</p>
+                </div>
+                <button class="get-started-btn" onclick="showScreen('timeSelection')">Get Started 🚀</button>
+            </div>
+            <div class="made-by">Made by Yajnavalkya ✨</div>
+        </div>
+
+        <!-- Time Selection Screen -->
+        <div class="screen hidden" id="timeSelection">
+            <h2 class="time-title">Choose Your Time ⏰</h2>
+            <div class="time-options">
+                <button class="time-btn" onclick="selectTime(1, this)">1 Minute</button>
+                <button class="time-btn" onclick="selectTime(2, this)">2 Minutes</button>
+                <button class="time-btn" onclick="selectTime(3, this)">3 Minutes</button>
+                <button class="time-btn" onclick="selectTime(4, this)">4 Minutes</button>
+                <button class="time-btn" onclick="selectTime(5, this)">5 Minutes</button>
+                <button class="time-btn infinite-btn" onclick="selectTime(0, this)">♾️ Infinite Time</button>
+            </div>
+            <button class="start-game-btn" id="startGameBtn" onclick="startGame()">Start Charades! 🎬</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div class="screen hidden" id="gameScreen">
+            <div class="game-header">
+                <div class="timer" id="timer">∞</div>
+                <div class="score" id="score">Score: 0</div>
+            </div>
+            <div class="card-container">
+                 <div class="movie-card" id="movieCard">
+                    <div class="loading">Loading movies... 🎬</div>
+                </div>
+            </div>
+             <div class="swipe-instructions">
+                <div class="swipe-left">👈 Pass / Skip</div>
+                <div class="swipe-right">Correct! 👉</div>
+            </div>
+            <button class="stop-btn" onclick="endGame()">Stop Charades</button>
+        </div>
+
+        <!-- Score Screen -->
+        <div class="screen hidden" id="scoreScreen">
+            <div class="final-score-title">YOUR SCORE</div>
+            <div class="final-score" id="finalScore">0</div>
+            <div class="score-details" id="scoreDetails">
+                Great job! You're a Telugu cinema expert! 🌟
+            </div>
+            <button class="play-again-btn" onclick="resetGame()">Play Again 🔄</button>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const screens = document.querySelectorAll('.screen');
+        const startGameBtn = document.getElementById('startGameBtn');
+        const timerEl = document.getElementById('timer');
+        const scoreEl = document.getElementById('score');
+        const movieCard = document.getElementById('movieCard');
+        const finalScoreEl = document.getElementById('finalScore');
+        const scoreDetailsEl = document.getElementById('scoreDetails');
+
+        // Game State
+        let allMovies = [];
+        let shuffledMovies = [];
+        let currentMovieIndex = 0;
+        let score = 0;
+        let selectedTime = null; // in minutes
+        let timeLeft = 0; // in seconds
+        let gameInterval = null;
+        let isGameActive = false;
+        
+        // Swipe detection variables
+        let isDragging = false;
+        let startX = 0;
+        let currentX = 0;
+        let dragThreshold = 50; // Min distance in pixels to register a swipe
+
+        // =================================================================
+        // STEP 1: ADD YOUR MOVIE DATA HERE
+        // =================================================================
+        // Replace this sample data with your movie titles and years.
+        const movieData = [
+            { title: "Baahubali", year: "2015" },
+            { title: "Arjun Reddy", year: "2017" },
+            { title: "Pushpa: The Rise", year: "2021" },
+            { title: "RRR", year: "2022" },
+            { title: "Magadheera", year: "2009" },
+            { title: "Eega", year: "2012" },
+            { title: "Rangasthalam", year: "2018" },
+            { title: "Ala Vaikunthapurramuloo", year: "2020" },
+            { title: "Jersey", year: "2019" },
+            { title: "Geetha Govindam", year: "2018" },
+            { title: "Srimanthudu", year: "2015" },
+            { title: "Fidaa", year: "2017" },
+            { title: "Khaidi No. 150", year: "2017" },
+            { title: "Sarileru Neekevvaru", year: "2020" },
+            { title: "Vakeel Saab", year: "2021" },
+            { title: "Jathi Ratnalu", year: "2021" },
+            { title: "Uppena", year: "2021" },
+            { title: "Krack", year: "2021" },
+            { title: "Mahanati", year: "2018" },
+            { title: "Colour Photo", year: "2020" }
+        ];
+        
+        // --- Game Setup ---
+        
+        function initialize() {
+            allMovies = [...movieData];
+            addSwipeListeners();
+        }
+
+        function showScreen(screenId) {
+            screens.forEach(screen => {
+                if (screen.id === screenId) {
+                    screen.classList.remove('hidden');
+                } else {
+                    screen.classList.add('hidden');
+                }
+            });
+        }
+
+        function selectTime(minutes, buttonEl) {
+            selectedTime = minutes;
+            document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('selected'));
+            buttonEl.classList.add('selected');
+            startGameBtn.classList.add('active');
+        }
+
+        function startGame() {
+            if (selectedTime === null) return;
+
+            // Reset state
+            score = 0;
+            currentMovieIndex = 0;
+            isGameActive = true;
+            shuffledMovies = [...allMovies].sort(() => Math.random() - 0.5); // Shuffle movies
+
+            // Timer setup
+            if (selectedTime > 0) {
+                timeLeft = selectedTime * 60;
+                timerEl.textContent = formatTime(timeLeft);
+                gameInterval = setInterval(updateTimer, 1000);
+            } else {
+                timerEl.textContent = '∞';
+            }
+
+            // UI updates
+            updateScore();
+            displayNextMovie();
+            showScreen('gameScreen');
+        }
+
+        // --- Gameplay Loop ---
+
+        function updateTimer() {
+            timeLeft--;
+            timerEl.textContent = formatTime(timeLeft);
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+        
+        function formatTime(seconds) {
+            const min = Math.floor(seconds / 60);
+            const sec = seconds % 60;
+            return `${min}:${sec.toString().padStart(2, '0')}`;
+        }
+
+        function displayNextMovie() {
+            if (currentMovieIndex >= shuffledMovies.length) {
+                // Reshuffle if we run out of unique movies
+                currentMovieIndex = 0;
+                shuffledMovies.sort(() => Math.random() - 0.5);
+            }
+            
+            const movie = shuffledMovies[currentMovieIndex];
+            movieCard.innerHTML = `
+                <div class="movie-title">${movie.title}</div>
+                <div class="movie-year">${movie.year}</div>
+            `;
+            movieCard.style.transform = 'translateX(0) rotate(0deg)';
+            movieCard.style.opacity = 1;
+        }
+
+        function handleSwipe(direction) {
+            if (!isGameActive) return;
+
+            const rotation = direction === 'right' ? 15 : -15;
+            const translateX = direction === 'right' ? '120%' : '-120%';
+            
+            if (direction === 'right') {
+                score++;
+                updateScore();
+            }
+
+            movieCard.style.transform = `translateX(${translateX}) rotate(${rotation}deg)`;
+            movieCard.style.opacity = 0;
+            
+            setTimeout(() => {
+                currentMovieIndex++;
+                displayNextMovie();
+            }, 300); // Wait for animation to finish
+        }
+        
+        function updateScore() {
+            scoreEl.textContent = `Score: ${score}`;
+        }
+
+        // --- Game End & Reset ---
+
+        function endGame() {
+            isGameActive = false;
+            clearInterval(gameInterval);
+            gameInterval = null;
+
+            finalScoreEl.textContent = score;
+            scoreDetailsEl.textContent = getScoreMessage(score);
+            showScreen('scoreScreen');
+        }
+
+        function getScoreMessage(finalScore) {
+            if (finalScore >= 20) return '🏆 Amazing! You\'re a Telugu cinema legend!';
+            if (finalScore >= 15) return '🌟 Excellent! You know your movies well!';
+            if (finalScore >= 10) return '👏 Good job! You\'re a true fan!';
+            if (finalScore >= 5)  return '👍 Not bad! Keep watching!';
+            return '📚 Time for a movie marathon!';
+        }
+
+        function resetGame() {
+            selectedTime = null;
+            startGameBtn.classList.remove('active');
+            document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('selected'));
+            showScreen('welcomeScreen');
+        }
+
+        // --- Swipe Event Listeners ---
+        
+        function addSwipeListeners() {
+            movieCard.addEventListener('mousedown', dragStart);
+            movieCard.addEventListener('touchstart', dragStart, { passive: true });
+
+            document.addEventListener('mousemove', dragging);
+            document.addEventListener('touchmove', dragging, { passive: true });
+
+            document.addEventListener('mouseup', dragEnd);
+            document.addEventListener('touchend', dragEnd);
+        }
+
+        function dragStart(e) {
+            if (!isGameActive) return;
+            isDragging = true;
+            startX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+            movieCard.style.transition = 'none'; // Disable transition during drag
+            movieCard.style.cursor = 'grabbing';
+        }
+
+        function dragging(e) {
+            if (!isDragging || !isGameActive) return;
+            currentX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+            
+            const diffX = currentX - startX;
+            const rotation = diffX / 20; // Rotate card based on drag distance
+            
+            movieCard.style.transform = `translateX(${diffX}px) rotate(${rotation}deg)`;
+        }
+
+        function dragEnd() {
+            if (!isDragging || !isGameActive) return;
+            isDragging = false;
+            
+            movieCard.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+            movieCard.style.cursor = 'grab';
+
+            const diffX = currentX - startX;
+
+            if (Math.abs(diffX) > dragThreshold) {
+                handleSwipe(diffX > 0 ? 'right' : 'left');
+            } else {
+                // Snap back to center if not swiped far enough
+                movieCard.style.transform = 'translateX(0) rotate(0deg)';
+            }
+            // Reset for next drag
+            startX = 0;
+            currentX = 0;
+        }
+
+        // --- Initialize on Load ---
+        document.addEventListener('DOMContentLoaded', initialize);
+    </script>
+</body>
+</html>
